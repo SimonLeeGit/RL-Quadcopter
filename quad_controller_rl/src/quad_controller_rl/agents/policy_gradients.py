@@ -157,17 +157,23 @@ class DDPG(BaseAgent):
     def __init__(self, task):
         # Task (environment) information
         self.task = task  # should contain observation_space and action_space
-        self.state_size = np.prod(self.task.observation_space.shape)
-        self.state_range = self.task.observation_space.high - self.task.observation_space.low
-        self.action_size = np.prod(self.task.action_space.shape)
-        self.action_range = self.task.action_space.high - self.task.action_space.low
+        # self.state_size = np.prod(self.task.observation_space.shape)
+        self.state_size = 3  # only position, ignore orientation
+        self.state_low = self.preprocess(self.task.observation_space.low, self.state_size)
+        self.state_high = self.preprocess(self.task.observation_space.high, self.state_size)
+        self.state_range = self.state_high - self.state_low
+        # self.action_size = np.prod(self.task.action_space.shape)
+        self.action_size = 3  # only linear, ignore angular
+        self.action_low = self.preprocess(self.task.action_space.low, self.action_size)
+        self.action_high = self.preprocess(self.task.action_space.high, self.action_size)
+        self.action_range = self.action_high - self.action_low
         print("Original spaces: {}, {}\nConstrained spaces: {}, {}".format(
             self.task.observation_space.shape, self.task.action_space.shape,
             self.state_size, self.action_size))
 
         # Actor (Policy) Model
-        self.action_low = self.task.action_space.low
-        self.action_high = self.task.action_space.high
+        self.action_low = self.preprocess(self.task.action_space.low, self.action_size)
+        self.action_high = self.preprocess(self.task.action_space.high, self.action_size)
         self.actor_local = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
         self.actor_target = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
 
@@ -208,14 +214,26 @@ class DDPG(BaseAgent):
         df_stats.to_csv(self.stats_filename, mode='a', index=False,
             header=not os.path.isfile(self.stats_filename))  # write header first
 
+    def preprocess(self, array, size):
+        """Get sub array with desired size."""
+        return np.split(array, [size], 0)[0]
+
+    def postprocess(self, array, size):
+        """Construct new array by array"""
+        new_array = np.zeros([size,])
+        new_array[0:len(array)] = array
+        return new_array
+
     def reset_episode_vars(self):
         self.last_state = None
         self.last_action = None
         self.total_reward = 0.0
 
     def step(self, state, reward, done):
+        state = self.preprocess(state, self.state_size)
+
         # Transform state vector
-        state = (state - self.task.observation_space.low) / self.state_range  # scale to [0.0, 1.0]
+        state = (state - self.state_low) / self.state_range  # scale to [0.0, 1.0]
         state = state.reshape(1, -1)  # convert to row vector
 
         # Choose an action
@@ -241,7 +259,7 @@ class DDPG(BaseAgent):
 
         self.last_state = state
         self.last_action = action
-        return action
+        return self.postprocess(action, np.prod(self.task.action_space.shape))
 
     def act(self, states):
         """Returns actions for given state(s) as per current policy."""
