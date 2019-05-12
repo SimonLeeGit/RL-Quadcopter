@@ -221,7 +221,9 @@ class DDPG(BaseAgent):
     def postprocess(self, array, size):
         """Construct new array by array"""
         new_array = np.zeros([size,])
-        new_array[0:len(array)] = array
+        flat_array = array.flatten()
+        idx = len(flat_array) if len(flat_array) < size else np.split(flat_array, [size], 0)[0]
+        new_array[0:idx] = flat_array
         return new_array
 
     def reset_episode_vars(self):
