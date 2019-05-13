@@ -253,11 +253,12 @@ class DDPG(BaseAgent):
 
         # Learn, if at end of episode
         if done:
-            self.reset_episode_vars()
-
             # Write episode stats
             self.write_stats([self.episode_num, self.total_reward])
             self.episode_num += 1
+
+            # Reset variables
+            self.reset_episode_vars()
 
         self.last_state = state
         self.last_action = action
