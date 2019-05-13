@@ -157,13 +157,13 @@ class DDPG(BaseAgent):
     def __init__(self, task):
         # Task (environment) information
         self.task = task  # should contain observation_space and action_space
-        # self.state_size = np.prod(self.task.observation_space.shape)
-        self.state_size = 3  # only position, ignore orientation
+        self.state_size = np.prod(self.task.observation_space.shape)
+        # self.state_size = 3  # only position, ignore orientation
         self.state_low = self.preprocess(self.task.observation_space.low, self.state_size)
         self.state_high = self.preprocess(self.task.observation_space.high, self.state_size)
         self.state_range = self.state_high - self.state_low
-        # self.action_size = np.prod(self.task.action_space.shape)
-        self.action_size = 3  # only linear, ignore angular
+        self.action_size = np.prod(self.task.action_space.shape)
+        # self.action_size = 3  # only linear, ignore angular
         self.action_low = self.preprocess(self.task.action_space.low, self.action_size)
         self.action_high = self.preprocess(self.task.action_space.high, self.action_size)
         self.action_range = self.action_high - self.action_low
