@@ -69,4 +69,4 @@ class Takeoff(BaseTask):
             return Wrench(), done
 
     def task_finished(self, timestamp, pose, angular_velocity, linear_acceleration):
-        return pose.position.z >= self.target_z and angular_velocity < 0.5
+        return pose.position.z >= self.target_z and angular_velocity < 0.5 * np.ones(angular_velocity.shape)
