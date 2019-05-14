@@ -71,6 +71,6 @@ class Hover(BaseTask):
 
     def task_finished(self, timestamp, pose, angular_velocity, linear_acceleration):
         return math.fabs(pose.position.z - self.target_z) < 0.5 and \
-            linear_acceleration < 0.5 and \
-            angular_velocity < 0.5 and \
+            linear_acceleration.x < 0.5 and linear_acceleration.y < 0.5 and linear_acceleration.z < 0.5 and \
+            angular_velocity.x < 0.5 and angular_velocity.y < 0.5 and angular_velocity.z < 0.5 and \
             timestamp > 2

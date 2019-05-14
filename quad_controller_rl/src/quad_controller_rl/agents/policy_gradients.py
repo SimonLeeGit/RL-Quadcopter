@@ -165,6 +165,10 @@ class DDPG(BaseAgent):
             self.task.observation_space.shape, self.task.action_space.shape,
             self.state_size, self.action_size))
 
+        # Parameters
+        self.actor_weights = os.path.join(util.get_param('out'), "actor_weights.h5")
+        self.critic_weights = os.path.join(util.get_param('out'), "critic_weights.h5")
+
         # Actor (Policy) Model
         self.action_low = self.task.action_space.low
         self.action_high = self.task.action_space.high
@@ -174,6 +178,10 @@ class DDPG(BaseAgent):
         # Critic (Value) Model
         self.critic_local = Critic(self.state_size, self.action_size)
         self.critic_target = Critic(self.state_size, self.action_size)
+
+        # Initialize local model parameters with loaded weights
+        self.critic_local.model.load_weights(self.critic_weights)
+        self.actor_local.model.load_weights(self.actor_weights)
 
         # Initialize target model parameters with local model parameters
         self.critic_target.model.set_weights(self.critic_local.model.get_weights())
@@ -233,6 +241,10 @@ class DDPG(BaseAgent):
 
         # Learn, if at end of episode
         if done:
+            # Save model weights
+            self.actor_local.model.save_weights(self.actor_weights)
+            self.critic_local.model.save_weights(self.critic_weights)
+
             # Write episode stats
             self.write_stats([self.episode_num, self.total_reward])
             self.episode_num += 1

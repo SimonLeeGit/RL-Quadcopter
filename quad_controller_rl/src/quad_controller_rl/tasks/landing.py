@@ -69,4 +69,5 @@ class Landing(BaseTask):
             return Wrench(), done
 
     def task_finished(self, timestamp, pose, angular_velocity, linear_acceleration):
-        return pose.position.z <= self.target_z
+        return pose.position.z <= self.target_z and \
+            angular_velocity.x < 0.5 and angular_velocity.y < 0.5 and angular_velocity.z < 0.5
