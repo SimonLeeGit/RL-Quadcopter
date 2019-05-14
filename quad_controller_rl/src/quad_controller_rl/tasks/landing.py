@@ -47,7 +47,7 @@ class Landing(BaseTask):
         # Compute reward / penalty and check if this episode is complete
         done = False
         reward = -min(abs(self.target_z - pose.position.z), 20.0)  # reward = zero for matching target z, -ve as you go farther, upto -20
-        if pose.position.z >= self.target_z:  # agent has crossed the target height
+        if pose.position.z <= self.target_z:  # agent has crossed the target height
             reward += 10.0  # bonus reward
             done = True
         elif timestamp > self.max_duration:  # agent has run out of time
