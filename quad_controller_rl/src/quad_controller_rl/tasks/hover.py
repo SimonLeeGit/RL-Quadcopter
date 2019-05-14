@@ -48,7 +48,7 @@ class Hover(BaseTask):
         # Compute reward / penalty and check if this episode is complete
         done = False
         reward = -min(abs(self.target_z - pose.position.z), 20.0)  # reward = zero for matching target z, -ve as you go farther, upto -20
-        if math.fabs(pose.position.z - self.target_z) < 0.5 and timestamp > 2:  # agent has crossed the target height
+        if self.task_finished(timestamp, pose, angular_velocity, linear_acceleration):  # agent has crossed the target height
             reward += 10.0  # bonus reward
             done = True
         elif timestamp > self.max_duration:  # agent has run out of time
@@ -68,3 +68,9 @@ class Hover(BaseTask):
                 ), done
         else:
             return Wrench(), done
+
+    def task_finished(self, timestamp, pose, angular_velocity, linear_acceleration):
+        return math.fabs(pose.position.z - self.target_z) < 0.5 and \
+            linear_acceleration < 0.5 and \
+            angular_velocity < 0.5 and \
+            timestamp > 2
