@@ -180,8 +180,10 @@ class DDPG(BaseAgent):
         self.critic_target = Critic(self.state_size, self.action_size)
 
         # Initialize local model parameters with loaded weights
-        self.critic_local.model.load_weights(self.critic_weights)
-        self.actor_local.model.load_weights(self.actor_weights)
+        if os.path.isfile(self.critic_weights):
+            self.critic_local.model.load_weights(self.critic_weights)
+        if os.path.isfile(self.actor_weights):
+            self.actor_local.model.load_weights(self.actor_weights)
 
         # Initialize target model parameters with local model parameters
         self.critic_target.model.set_weights(self.critic_local.model.get_weights())
