@@ -26,12 +26,12 @@ class Landing(BaseTask):
 
         # Task-specific parameters
         self.max_duration = 5.0  # secs
-        self.target_z = 0.5  # target height (z position) to reach for successful landing
+        self.target_z = 6.0  # target height (z position) to reach for successful landing
 
     def reset(self):
         # Nothing to reset; just return initial condition
         return Pose(
-                position=Point(0.0, 0.0, np.random.normal(10.0, 0.1)),  # drop off from a slight random height
+                position=Point(0.0, 0.0, np.random.normal(20.0, 0.1)),  # drop off from a slight random height
                 orientation=Quaternion(0.0, 0.0, 0.0, 0.0),
             ), Twist(
                 linear=Vector3(0.0, 0.0, 0.0),
