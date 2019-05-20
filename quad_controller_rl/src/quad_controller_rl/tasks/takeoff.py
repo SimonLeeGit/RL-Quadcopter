@@ -26,12 +26,12 @@ class Takeoff(BaseTask):
 
         # Task-specific parameters
         self.max_duration = 5.0  # secs
-        self.target_z = 20.0  # target height (z position) to reach for successful takeoff
+        self.target_z = 10.0  # target height (z position) to reach for successful takeoff
 
     def reset(self):
         # Nothing to reset; just return initial condition
         return Pose(
-                position=Point(0.0, 0.0, np.random.normal(6.0, 0.1)),  # drop off from a slight random height
+                position=Point(0.0, 0.0, np.random.normal(0.5, 0.1)),  # drop off from a slight random height
                 orientation=Quaternion(0.0, 0.0, 0.0, 0.0),
             ), Twist(
                 linear=Vector3(0.0, 0.0, 0.0),
@@ -47,7 +47,7 @@ class Takeoff(BaseTask):
         # Compute reward / penalty and check if this episode is complete
         done = False
         reward = -min(abs(self.target_z - pose.position.z), 20.0)  # reward = zero for matching target z, -ve as you go farther, upto -20
-        if self.task_finished(timestamp, pose, angular_velocity, linear_acceleration):  # agent has crossed the target height
+        if pose.position.z >= self.target_z:  # agent has crossed the target height
             reward += 10.0  # bonus reward
             done = True
         elif timestamp > self.max_duration:  # agent has run out of time
@@ -67,7 +67,3 @@ class Takeoff(BaseTask):
                 ), done
         else:
             return Wrench(), done
-
-    def task_finished(self, timestamp, pose, angular_velocity, linear_acceleration):
-        return pose.position.z >= self.target_z and \
-            angular_velocity.x < 0.5 and angular_velocity.y < 0.5 and angular_velocity.z < 0.5

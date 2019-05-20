@@ -53,8 +53,6 @@ class Actor:
         self.action_high = action_high
         self.action_range = self.action_high - self.action_low
 
-        # Initialize any other variables here
-
         self.build_model()
 
     def build_model(self):
@@ -64,16 +62,8 @@ class Actor:
 
         # Add hidden layers
         net = layers.Dense(units=32, activation='relu')(states)
-        net = layers.BatchNormalization()(net)
-        net = layers.Dropout(0.5)(net)
-
         net = layers.Dense(units=64, activation='relu')(net)
-        net = layers.BatchNormalization()(net)
-        net = layers.Dropout(0.5)(net)
-
         net = layers.Dense(units=32, activation='relu')(net)
-        net = layers.BatchNormalization()(net)
-        net = layers.Dropout(0.5)(net)
 
         # Try different layer sizes, activations, add batch normalization, regularizers, etc.
 
@@ -127,25 +117,11 @@ class Critic:
 
         # Add hidden layer(s) for state pathway
         net_states = layers.Dense(units=32, activation='relu')(states)
-        net_states = layers.BatchNormalization()(net_states)
-        net_states = layers.Dropout(0.5)(net_states)
         net_states = layers.Dense(units=64, activation='relu')(net_states)
-        net_states = layers.BatchNormalization()(net_states)
-        net_states = layers.Dropout(0.5)(net_states)
-        net_states = layers.Dense(units=32, activation='relu')(net_states)
-        net_states = layers.BatchNormalization()(net_states)
-        net_states = layers.Dropout(0.5)(net_states)
 
         # Add hidden layer(s) for action pathway
         net_actions = layers.Dense(units=32, activation='relu')(actions)
-        net_actions = layers.BatchNormalization()(net_actions)
-        net_actions = layers.Dropout(0.5)(net_actions)
         net_actions = layers.Dense(units=64, activation='relu')(net_actions)
-        net_actions = layers.BatchNormalization()(net_actions)
-        net_actions = layers.Dropout(0.5)(net_actions)
-        net_actions = layers.Dense(units=32, activation='relu')(net_actions)
-        net_actions = layers.BatchNormalization()(net_actions)
-        net_actions = layers.Dropout(0.5)(net_actions)
 
         # Try different layer sizes, activations, add batch normalization, regularizers, etc.
 
@@ -179,10 +155,8 @@ class DDPG(BaseAgent):
     def __init__(self, task):
         # Task (environment) information
         self.task = task  # should contain observation_space and action_space
-        self.state_size = np.prod(self.task.observation_space.shape)
-        self.state_range = self.task.observation_space.high - self.task.observation_space.low
-        self.action_size = np.prod(self.task.action_space.shape)
-        self.action_range = self.task.action_space.high - self.task.action_space.low
+        self.state_size = 3
+        self.action_size = 3
         print("Original spaces: {}, {}\nConstrained spaces: {}, {}".format(
             self.task.observation_space.shape, self.task.action_space.shape,
             self.state_size, self.action_size))
@@ -245,10 +219,19 @@ class DDPG(BaseAgent):
         self.last_action = None
         self.total_reward = 0.0
 
+    def preprocess_state(self, state):
+        """Reduce state vector to relevant dimensions."""
+        return state[0:3]  # position only
+
+    def postprocess_action(self, action):
+        """Return complete action vector."""
+        complete_action = np.zeros(self.task.action_space.shape)  # shape: (6,)
+        complete_action[0:3] = action  # linear force only
+        return complete_action
+
     def step(self, state, reward, done):
-        # Transform state vector
-        state = (state - self.task.observation_space.low) / self.state_range  # scale to [0.0, 1.0]
-        state = state.reshape(1, -1)  # convert to row vector
+        # Reduce state vector
+        state = self.preprocess_state(state)
 
         # Choose an action
         action = self.act(state)
@@ -258,13 +241,13 @@ class DDPG(BaseAgent):
             self.memory.add(self.last_state, self.last_action, reward, state, done)
             self.total_reward += reward
 
-        # Learn, if enough samples are available in memory
-        if len(self.memory) > self.batch_size:
-            experience = self.memory.sample(self.batch_size)
-            self.learn(experience)
-
         # Learn, if at end of episode
         if done:
+            # Learn, if enough samples are available in memory
+            if len(self.memory) > self.batch_size:
+                experience = self.memory.sample(self.batch_size)
+                self.learn(experience)
+
             # Save model weights
             self.actor_local.model.save_weights(self.actor_weights)
             self.critic_local.model.save_weights(self.critic_weights)
@@ -278,7 +261,9 @@ class DDPG(BaseAgent):
 
         self.last_state = state
         self.last_action = action
-        return action
+        
+        # Return complete action vector
+        return self.postprocess_action(action)
 
     def act(self, states):
         """Returns actions for given state(s) as per current policy."""

@@ -23,14 +23,13 @@ class ReplayBuffer:
             self.memory.append(experience)
             self.idx += 1
         else:
-            self.idx = self.idx + 1 if self.idx < len(self.memory)-1 else 0
+            self.idx = self.idx % self.size
             self.memory[self.idx] = experience
+            self.idx += 1
     
     def sample(self, batch_size=64):
         """Randomly sample a batch of experiences from memory."""
-        memory_idxs = list(range(0, len(self.memory)-1))
-        batch_idxs = random.sample(memory_idxs, batch_size)
-        return [self.memory[idx] for idx in batch_idxs]
+        return random.sample(self.memory, k=batch_size)
 
     def __len__(self):
         """Return the current size of internal memory."""
