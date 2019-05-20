@@ -28,7 +28,7 @@ class Hover(BaseTask):
         # Task-specific parameters
         self.max_duration = 5.0  # secs
         self.max_error_position = 8.0
-        self.target_position = np.array([0.0, 0.0, 10.0])  # ideally hovers at 10 units
+        self.target_position = np.array([0.0, 0.0, 20.0])  # ideally hovers at 10 units
         self.position_weight = 0.6
         self.target_orientation = np.array([0.0, 0.0, 0.0, 1.0])
         self.orientation_weight = 0.0
