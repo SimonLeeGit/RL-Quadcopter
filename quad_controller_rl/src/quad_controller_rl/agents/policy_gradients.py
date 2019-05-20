@@ -166,8 +166,8 @@ class DDPG(BaseAgent):
         self.critic_weights = os.path.join(util.get_param('out'), "critic_weights.h5")
 
         # Actor (Policy) Model
-        self.action_low = self.task.action_space.low
-        self.action_high = self.task.action_space.high
+        self.action_low = self.preprocess_state(self.task.action_space.low)
+        self.action_high = self.preprocess_state(self.task.action_space.high)
         self.actor_local = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
         self.actor_target = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
 
