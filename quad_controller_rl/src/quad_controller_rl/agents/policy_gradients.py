@@ -241,13 +241,13 @@ class DDPG(BaseAgent):
             self.memory.add(self.last_state, self.last_action, reward, state, done)
             self.total_reward += reward
 
+        # Learn, if enough samples are available in memory
+        if len(self.memory) > self.batch_size:
+            experience = self.memory.sample(self.batch_size)
+            self.learn(experience)
+
         # Learn, if at end of episode
         if done:
-            # Learn, if enough samples are available in memory
-            if len(self.memory) > self.batch_size:
-                experience = self.memory.sample(self.batch_size)
-                self.learn(experience)
-
             # Save model weights
             self.actor_local.model.save_weights(self.actor_weights)
             self.critic_local.model.save_weights(self.critic_weights)
