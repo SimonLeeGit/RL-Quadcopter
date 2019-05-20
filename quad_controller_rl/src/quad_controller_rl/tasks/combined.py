@@ -1,4 +1,4 @@
-"""Takeoff task."""
+"""Combined task."""
 
 import numpy as np
 from quad_controller_rl.tasks.base_task import BaseTask
